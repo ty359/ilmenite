@@ -4,7 +4,7 @@
 ## What Is Ilmenite
 
 Ilmenite is a town-building game with a relatively high DOF. Players can build and develop towns in a 3D sanbox world made up with blocks.
-It is developed by a team led by the great young computer scientist Ye D.P. Tao(ID:__ty), using Unity game engine.
+The game is using Unity game engine.
 
 ## Game Features
 
