@@ -80,6 +80,8 @@
   <ItemGroup>
     <Compile Include="Assets\3rd\Noise.cs" />
     <Compile Include="Assets\Chunk.cs" />
+    <Compile Include="Assets\TMP\Chunk.cs" />
+    <Compile Include="Assets\World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

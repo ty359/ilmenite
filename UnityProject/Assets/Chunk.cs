@@ -3,309 +3,306 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum Direction
+{
+    East = 0,
+    West,
+    Up,
+    Down,
+    South,
+    North,
+    In,
+    Out,
+}
 
-[RequireComponent(typeof(MeshFilter), typeof(Transform))]
-public class Chunk : MonoBehaviour {
+public class TemporaryMesh
+{
+    public List<Vector3> vertices = new List<Vector3>();
+    public List<int> triangles = new List<int>();
+    public List<Vector2> uvs = new List<Vector2>();
+}
 
-    public class Block
+public class BlockType
+{
+    public byte typeID;
+    public Vector2[] cubeUVs;
+}
+
+public class Block
+{
+    public Block(byte id)
     {
-        enum Direction
+        typeID = id;
+    }
+    public Block()
+    {
+    }
+
+    // Scale
+    public const float SIZE_X = 0.5F;
+    public const float SIZE_Y = 0.5F;
+    public const float SIZE_Z = 0.5F;
+
+    // Block Type
+    byte typeID;
+    public static BlockType[] blockTypeList = new BlockType[256];
+    public static void InitBlockTypeList()
+    {
+        InitAirBlock();
+        InitDirtBlock();
+    }
+    static void InitAirBlock()
+    {
+        blockTypeList[0] = new BlockType();
+        blockTypeList[0].typeID = 0;
+        blockTypeList[0].cubeUVs = null;
+    }
+    static void InitDirtBlock()
+    {
+        blockTypeList[1] = new BlockType();
+        blockTypeList[1].typeID = 1;
+        blockTypeList[1].cubeUVs = new Vector2[]
         {
-            East = 0,
-            West,
-            Up,
-            Down,
-            South,
-            North,
-            In,
-            Out
-        }
+            new Vector2(0.00f, 0.75f),
+            new Vector2(0.00f, 1.00f),
+            new Vector2(0.25f, 1.00f),
+            new Vector2(0.25f, 0.75f)
+        };
+    }
 
-        public enum BlockType
+    // Render
+    public void RenderAt(Vector3 pos, TemporaryMesh mesh)
+    {
+        if (blockTypeList[typeID].cubeUVs != null)
         {
-            Air = 0,
-            Dirt = 1,
-            Grass = 3,
-            Gravel = 4,
-        }
-
-        Chunk parentChunk;
-        public BlockType type;
-        byte x, y ,z;
-
-        public Block(Chunk _parentChunk, byte _x, byte _y, byte _z, BlockType _type)
-        {
-            parentChunk = _parentChunk;
-            x = _x;
-            y = _y;
-            z = _z;
-            type = _type;
-        }
-
-        public void MeshUpdate(List<Vector3> meshVertices, List<int> meshTriangles, List<Vector2> meshUVs)
-        {
-            if (NeedUpdateFace(Direction.Up))
-                MeshUpdateFace(Direction.Up, meshVertices, meshTriangles, meshUVs);
-            if (NeedUpdateFace(Direction.Down))
-                MeshUpdateFace(Direction.Down, meshVertices, meshTriangles, meshUVs);
-            if (NeedUpdateFace(Direction.East))
-                MeshUpdateFace(Direction.East, meshVertices, meshTriangles, meshUVs);
-            if (NeedUpdateFace(Direction.West))
-                MeshUpdateFace(Direction.West, meshVertices, meshTriangles, meshUVs);
-            if (NeedUpdateFace(Direction.South))
-                MeshUpdateFace(Direction.South, meshVertices, meshTriangles, meshUVs);
-            if (NeedUpdateFace(Direction.North))
-                MeshUpdateFace(Direction.North, meshVertices, meshTriangles, meshUVs);
-        }
-
-        // TODO
-        bool NeedUpdateFace(Direction direction)
-        {
-            return true;
-        }
-
-        Vector3 GetVertice(int east, int up, int south)
-        {
-            Vector3 ret = new Vector3((x + east) * BlockXShift, (y + up) * BlockYShift, (z + south) * BlockZShift) + parentChunk.basePos;
-            Debug.Log(ret.ToString());
-            return ret;
-        }
-
-        void AddTexture(Direction direction, List<Vector2> meshUVs)
-        {
-            Vector2 uvWidth = new Vector2(0.25f, 0.25f);
-            Vector2 uvCorner = new Vector2(0.00f, 0.75f);
-
-            uvCorner.x += (float)(type - 1) / 4;
-            meshUVs.Add(uvCorner);
-            meshUVs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-            meshUVs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-            meshUVs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        }
-
-        void MeshUpdateFace(Direction direction, List<Vector3> meshVertices, List<int> meshTriangles, List<Vector2> meshUVs)
-        {
-            int verticesCountBase = meshVertices.Count;
-            switch (direction)
-            {
-                case Direction.East:
-                    meshVertices.Add(GetVertice(1, 0, 0));
-                    meshVertices.Add(GetVertice(1, 1, 0));
-                    meshVertices.Add(GetVertice(1, 1, 1));
-                    meshVertices.Add(GetVertice(1, 0, 1));
-                    break;
-
-                case Direction.West:
-                    meshVertices.Add(GetVertice(0, 0, 0));
-                    meshVertices.Add(GetVertice(0, 0, 1));
-                    meshVertices.Add(GetVertice(0, 1, 1));
-                    meshVertices.Add(GetVertice(0, 1, 0));
-                    break;
-
-                case Direction.Up:
-                    meshVertices.Add(GetVertice(0, 1, 0));
-                    meshVertices.Add(GetVertice(0, 1, 1));
-                    meshVertices.Add(GetVertice(1, 1, 1));
-                    meshVertices.Add(GetVertice(1, 1, 0));
-                    break;
-
-                case Direction.Down:
-                    meshVertices.Add(GetVertice(0, 0, 0));
-                    meshVertices.Add(GetVertice(1, 0, 0));
-                    meshVertices.Add(GetVertice(1, 0, 1));
-                    meshVertices.Add(GetVertice(0, 0, 1));
-                    break;
-
-                case Direction.South:
-                    meshVertices.Add(GetVertice(0, 0, 1));
-                    meshVertices.Add(GetVertice(1, 0, 1));
-                    meshVertices.Add(GetVertice(1, 1, 1));
-                    meshVertices.Add(GetVertice(0, 1, 1));
-                    break;
-
-                case Direction.North:
-                    meshVertices.Add(GetVertice(0, 0, 0));
-                    meshVertices.Add(GetVertice(0, 1, 0));
-                    meshVertices.Add(GetVertice(1, 1, 0));
-                    meshVertices.Add(GetVertice(1, 0, 0));
-                    break;
-            }
-            meshTriangles.Add(verticesCountBase + 0);
-            meshTriangles.Add(verticesCountBase + 1);
-            meshTriangles.Add(verticesCountBase + 2);
-
-            meshTriangles.Add(verticesCountBase + 0);
-            meshTriangles.Add(verticesCountBase + 2);
-            meshTriangles.Add(verticesCountBase + 3);
-
-            AddTexture(direction, meshUVs);
+            RenderCubeAt(pos, mesh);
         }
     }
 
-    public class Saver
+    void RenderCubeAt(Vector3 pos, TemporaryMesh mesh)
     {
-        Saver(string str)
+        RenderCubeFaceAt(pos, Direction.East, mesh);
+        RenderCubeFaceAt(pos, Direction.West, mesh);
+        RenderCubeFaceAt(pos, Direction.Up, mesh);
+        RenderCubeFaceAt(pos, Direction.Down, mesh);
+        RenderCubeFaceAt(pos, Direction.South, mesh);
+        RenderCubeFaceAt(pos, Direction.North, mesh);
+    }
+    void RenderCubeFaceAt(Vector3 pos, Direction direction, TemporaryMesh mesh)
+    {
+        int verticesCountBase = mesh.vertices.Count;
+        switch (direction)
         {
-            currentSavePath = str;
-        }
-        string currentSavePath;
+            case Direction.East:
+                mesh.vertices.Add(GetVertice(pos, 1, 0, 0));
+                mesh.vertices.Add(GetVertice(pos, 1, 1, 0));
+                mesh.vertices.Add(GetVertice(pos, 1, 1, 1));
+                mesh.vertices.Add(GetVertice(pos, 1, 0, 1));
+                break;
 
-        void LoadChunkShift(FileStream file, int x, int y, int z, out long shift, out long length)
-        {
-            file.Seek(((x) * WorldYSize + y) * WorldZSize + z, SeekOrigin.Begin);
-            byte[] data = new byte[16];
-            file.Read(data, 0, 16);
-            shift = System.BitConverter.ToInt64(data, 0);
-            length = System.BitConverter.ToInt64(data, 8);
-        }
+            case Direction.West:
+                mesh.vertices.Add(GetVertice(pos, 0, 0, 0));
+                mesh.vertices.Add(GetVertice(pos, 0, 0, 1));
+                mesh.vertices.Add(GetVertice(pos, 0, 1, 1));
+                mesh.vertices.Add(GetVertice(pos, 0, 1, 0));
+                break;
 
-        void SaveChunkShift(FileStream file, int x, int y, int z, long shift, long length)
-        {
-            file.Seek(((x) * WorldYSize + y) * WorldZSize + z, SeekOrigin.Begin);
-            file.Write(System.BitConverter.GetBytes(shift), 0, 8);
-            file.Write(System.BitConverter.GetBytes(length), 0, 8);
-        }
+            case Direction.Up:
+                mesh.vertices.Add(GetVertice(pos, 0, 1, 0));
+                mesh.vertices.Add(GetVertice(pos, 0, 1, 1));
+                mesh.vertices.Add(GetVertice(pos, 1, 1, 1));
+                mesh.vertices.Add(GetVertice(pos, 1, 1, 0));
+                break;
 
-        public void Save(Chunk chunk)
-        {
-            if (chunk != null)
-            {
-                FileStream file = new FileStream(currentSavePath, FileMode.Append, FileAccess.Write);
-                byte[] data = chunk.SaveToBytes();
-                SaveChunkShift(file, chunk.x, chunk.y, chunk.z, file.Length, data.Length);
-                file.Seek(0, SeekOrigin.End);
-                file.Write(data, 0, data.Length);
-                file.Close();
-            }
-        }
+            case Direction.Down:
+                mesh.vertices.Add(GetVertice(pos, 0, 0, 0));
+                mesh.vertices.Add(GetVertice(pos, 1, 0, 0));
+                mesh.vertices.Add(GetVertice(pos, 1, 0, 1));
+                mesh.vertices.Add(GetVertice(pos, 0, 0, 1));
+                break;
 
-        public void Load(Chunk chunk)
+            case Direction.South:
+                mesh.vertices.Add(GetVertice(pos, 0, 0, 1));
+                mesh.vertices.Add(GetVertice(pos, 1, 0, 1));
+                mesh.vertices.Add(GetVertice(pos, 1, 1, 1));
+                mesh.vertices.Add(GetVertice(pos, 0, 1, 1));
+                break;
+
+            case Direction.North:
+                mesh.vertices.Add(GetVertice(pos, 0, 0, 0));
+                mesh.vertices.Add(GetVertice(pos, 0, 1, 0));
+                mesh.vertices.Add(GetVertice(pos, 1, 1, 0));
+                mesh.vertices.Add(GetVertice(pos, 1, 0, 0));
+                break;
+        }
+        mesh.triangles.Add(verticesCountBase + 0);
+        mesh.triangles.Add(verticesCountBase + 1);
+        mesh.triangles.Add(verticesCountBase + 2);
+
+        mesh.triangles.Add(verticesCountBase + 0);
+        mesh.triangles.Add(verticesCountBase + 2);
+        mesh.triangles.Add(verticesCountBase + 3);
+
+        mesh.uvs.AddRange(blockTypeList[typeID].cubeUVs);
+    }
+
+    Vector3 GetVertice(Vector3 pos, int x, int y, int z)
+    {
+        return new Vector3(pos.x + x * SIZE_X, pos.y + y * SIZE_Y, pos.z + z * SIZE_Z);
+    }
+
+    // Read & Write
+    public void Read(BinaryReader reader)
+    {
+        typeID = reader.ReadByte();
+    }
+
+    public void Write(BinaryWriter writer)
+    {
+        writer.Write(typeID);
+    }
+}
+
+public class ChunkSaver
+{
+    public ChunkSaver(string path)
+    {
+        if (!File.Exists(path))
         {
-            if (chunk != null)
-            {
-                FileStream file = new FileStream(currentSavePath, FileMode.Open, FileAccess.Read);
-                long shift, length;
-                LoadChunkShift(file, chunk.x, chunk.y, chunk.z, out shift, out length);
-                byte[] data = new byte[length];
-                file.Seek(shift, SeekOrigin.Begin);
-                file.Read(data, 0, (int)length);
-                chunk.LoadFromBytes(data);
-                file.Close();
-            }
+            Debug.LogWarning("Save file " + path + " do not exists!");
+            Debug.Log("Create new save file!" + path);
+            fs = File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            fs.SetLength(HEADER_X * HEADER_Y * HEADER_Z * sizeof(long));
+        }
+        else
+        {
+            fs = File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         }
     }
 
-    public const int ChunkXSize = 16;
-    public const int ChunkYSize = 16;
-    public const int ChunkZSize = 16;
+    // Header Scale
+    public const int HEADER_X = World.CHUNK_COUNT_X;
+    public const int HEADER_Y = World.CHUNK_COUNT_Y;
+    public const int HEADER_Z = World.CHUNK_COUNT_Z;
 
-    public const float BlockXShift = .5f;
-    public const float BlockYShift = .5f;
-    public const float BlockZShift = .5f;
+    FileStream fs;
+    long HeaderOffset(int X, int Y, int Z)
+    {
+        return ((X) * HEADER_Y + Y) * HEADER_Z + Z;
+    }
 
-    public const float ChunkXShift = ChunkXSize * BlockXShift;
-    public const float ChunkYShift = ChunkYSize * BlockYShift;
-    public const float ChunkZShift = ChunkZSize * BlockZShift;
+    public BinaryReader LoadChunk(int X, int Y, int Z)
+    {
+        fs.Seek(HeaderOffset(X, Y, Z), SeekOrigin.Begin);
+        long chunkOffset = (new BinaryReader(fs)).ReadInt64();
+        fs.Seek(chunkOffset, SeekOrigin.Begin);
+        if (chunkOffset == 0)
+            return null;
+        else
+            return new BinaryReader(fs);
+    }
 
-    public static int WorldXSize = 256;
-    public static int WorldYSize = 16;
-    public static int WorldZSize = 256;
+    public BinaryWriter SaveChunk(int X, int Y, int Z)
+    {
+        long chunkOffset = fs.Seek(0, SeekOrigin.End);
+        fs.Seek(HeaderOffset(X, Y, Z), SeekOrigin.Begin);
+        (new BinaryWriter(fs)).Write(chunkOffset);
+        fs.Seek(0, SeekOrigin.End);
+        return new BinaryWriter(fs);
+    }
+}
 
-    static Chunk[,,] chunkMap = new Chunk[WorldXSize, WorldYSize, WorldZSize];
+[RequireComponent(typeof(MeshFilter), typeof(Transform), typeof(MeshRenderer))]
+public class Chunk : MonoBehaviour
+{
+    // Scale
+    public const int BLOCK_COUNT_X = 16;
+    public const int BLOCK_COUNT_Y = 16;
+    public const int BLOCK_COUNT_Z = 16;
 
-    int x = 0, y = 0, z = 0;
-    Block[,,] blockMap = new Block[ChunkXSize, ChunkYSize, ChunkZSize];
+    public const float SIZE_X = BLOCK_COUNT_X * Block.SIZE_X;
+    public const float SIZE_Y = BLOCK_COUNT_Y * Block.SIZE_Y;
+    public const float SIZE_Z = BLOCK_COUNT_Z * Block.SIZE_Z;
 
-    Mesh meshFilter;
+    // Basic
+    int X, Y, Z;
+    Block[,,] blockMap;
     Vector3 basePos;
-
-    void UpdateBlock(byte x, byte y, byte z, Block.BlockType type)
+    Vector3 GetBlockPos(int x, int y, int z)
     {
-        blockMap[x, y, z] = new Block(this, x, y, z, type);
+        return basePos + new Vector3(x * Block.SIZE_X, y * Block.SIZE_Y, z * Block.SIZE_Z);
     }
 
-    void UpdateMesh()
+    // Render
+    Mesh mesh;
+    bool needRenderUpdate = true;
+    public void RenderUpdate()
     {
-        List<Vector3> verts = new List<Vector3>();
-        List<int> tris = new List<int>();
-        List<Vector2> uvs = new List<Vector2>();
-        for (int i = 0; i < ChunkXSize; i++)
-        {
-            for (int j = 0; j < ChunkYSize; j++)
-            {
-                for (int k = 0; k < ChunkZSize; k++)
+        if (!needRenderUpdate)
+            return;
+        if (blockMap == null)
+            throw new System.Exception("Try to run RenderUpdate() while the chunk is not loaded!");
+        TemporaryMesh tmpMesh = new TemporaryMesh();
+        for (int i = 0; i < BLOCK_COUNT_X; ++i)
+            for (int j = 0; j < BLOCK_COUNT_Y; ++j)
+                for (int k = 0; k < BLOCK_COUNT_Z; ++k)
+                    blockMap[i, j, k].RenderAt(GetBlockPos(i, j, k), tmpMesh);
+        mesh.vertices = tmpMesh.vertices.ToArray();
+        mesh.triangles = tmpMesh.triangles.ToArray();
+        mesh.uv = tmpMesh.uvs.ToArray();
+        needRenderUpdate = false;
+    }
+
+    // Load & Unload
+    public void Load(ChunkSaver chunkSaver)
+    {
+        blockMap = new Block[BLOCK_COUNT_X, BLOCK_COUNT_Y, BLOCK_COUNT_Z];
+        BinaryReader reader = chunkSaver.LoadChunk(X, Y, Z);
+        for (int i = 0; i < BLOCK_COUNT_X; ++i)
+            for (int j = 0; j < BLOCK_COUNT_Y; ++j)
+                for (int k = 0; k < BLOCK_COUNT_Z; ++k)
                 {
-                    if (blockMap[i, j, k] != null)
-                    {
-                        blockMap[i, j, k].MeshUpdate(verts, tris, uvs);
-                    }
+                    blockMap[i, j, k] = new Block();
+                    blockMap[i, j, k].Read(reader);
                 }
-            }
-        }
-        meshFilter.vertices = verts.ToArray();
-        meshFilter.triangles = tris.ToArray();
-        meshFilter.uv = uvs.ToArray();
     }
 
-    byte[] SaveToBytes()
+    public void Unload(ChunkSaver chunkSaver)
     {
-        List<byte> res = new List<byte>();
-        for (int i = 0; i < ChunkXSize; i++)
-        {
-            for (int j = 0; j < ChunkYSize; j++)
-            {
-                for (int k = 0; k < ChunkZSize; k++)
+        BinaryWriter writer = chunkSaver.SaveChunk(X, Y, Z);
+        for (int i = 0; i < BLOCK_COUNT_X; ++i)
+            for (int j = 0; j < BLOCK_COUNT_Y; ++j)
+                for (int k = 0; k < BLOCK_COUNT_Z; ++k)
                 {
-                    if (blockMap[i, j, k] == null)
-                        res.Add(0);
-                    else
-                        res.Add((byte)blockMap[i, j, k].type);
+                    blockMap[i, j, k].Write(writer);
                 }
-            }
-        }
-        return res.ToArray();
+        blockMap = null;
     }
 
-    void LoadFromBytes(byte[] s)
+    // Init
+    public void Reset(int x, int y, int z)
     {
-        int nowI = 0;
-        for (int i = 0; i < ChunkXSize; i++)
-        {
-            for (int j = 0; j < ChunkYSize; j++)
-            {
-                for (int k = 0; k < ChunkZSize; k++)
-                {
-                    if (s[nowI] != 0)
-                        blockMap[i, j, k] = new Block(this, (byte)i, (byte)j, (byte)k, (Block.BlockType)s[nowI]);
-                    else
-                        blockMap[i, j, k] = null;
-                }
-            }
-        }
+        GetComponent<Transform>().position = new Vector3(x * SIZE_X, y * SIZE_Y, z * SIZE_Z);
+        basePos = GetComponent<Transform>().position;
+        mesh = GetComponent<MeshFilter>().mesh;
+        X = x;
+        Y = y;
+        Z = z;
     }
 
-    // TODO
+    public void Free()
+    {
+        mesh.Clear();
+        blockMap = null;
+    }
+
     // Use this for initialization
-    void Start () {
-        chunkMap[x, y, z] = this;
-
-        basePos = GetComponent<Transform>().transform.position;
-        meshFilter = GetComponent<MeshFilter>().mesh;
-        for (int i = 0; i < ChunkXSize; i++)
-        {
-            for (int j = 0; j < ChunkZSize; j++)
-            {
-                if (Random.Range(0, 2) < 1)
-                    UpdateBlock((byte)i, 0, (byte)j, Block.BlockType.Grass);
-                else
-                    UpdateBlock((byte)i, 0, (byte)j, Block.BlockType.Dirt);
-            }
-        }
-        UpdateMesh();
+    void Start()
+    {
     }
 
-    // TODO
-    // Update is called once per frame
-    void Update () {
+	// Update is called once per frame
+	void Update()
+    {
     }
 }
