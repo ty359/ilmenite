@@ -80,7 +80,9 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Block.cs" />
     <Compile Include="Assets\Scripts\Chunk.cs" />
+    <Compile Include="Assets\Scripts\ION.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
+    <Compile Include="Assets\Scripts\TestScripts.cs" />
     <Compile Include="Assets\Scripts\World.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

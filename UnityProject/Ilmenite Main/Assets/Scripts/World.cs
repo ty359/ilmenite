@@ -23,9 +23,11 @@ public class World: MonoBehaviour
     }
 
     Chunk[,,] chunks;
+    ChunkSaver chunkSaver;
 
     void Start()
     {
+        chunkSaver = ChunkSaver.Open("test.save");
         chunks = new Chunk[worldSizeX, worldSizeY, worldSizeZ];
         for (int i = 0; i < worldSizeX; ++ i)
             for (int j = 0; j < worldSizeY; ++ j)
@@ -37,8 +39,7 @@ public class World: MonoBehaviour
                         Quaternion.identity,
                         gameObject.transform
                     ).GetComponent<Chunk>();
-                    chunks[i, j, k].Load(i, j, k);
+                    chunks[i, j, k].Load(chunkSaver, i, j, k);
                 }
     }
 }
-

@@ -14,25 +14,29 @@ public class Player : MonoBehaviour {
     }
     void Update()
     {
-        if (Input.GetKey(KeyCode.UpArrow))
+        if (rigidbody.velocity.y < 0.01 && rigidbody.velocity.y > -0.01)
         {
-            rigidbody.velocity += transform.rotation * new Vector3(0, 0, .5f);
+            if (Input.GetKey(KeyCode.UpArrow))
+            {
+                rigidbody.velocity += transform.rotation * new Vector3(0, 0, .2f);
+            }
+            if (Input.GetKey(KeyCode.DownArrow))
+            {
+                rigidbody.velocity += transform.rotation * new Vector3(0, 0, -.2f);
+            }
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
+                rigidbody.velocity += transform.rotation * new Vector3(-.18f, 0, 0);
+            }
+            if (Input.GetKey(KeyCode.RightArrow))
+            {
+                rigidbody.velocity += transform.rotation * new Vector3(.18f, 0, 0);
+            }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                gameObject.GetComponent<Rigidbody>().velocity += new Vector3(0, 8, 0);
+            }
         }
-        if (Input.GetKey(KeyCode.DownArrow))
-        {
-            rigidbody.velocity += transform.rotation * new Vector3(0, 0, -.5f);
-        }
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            rigidbody.velocity += transform.rotation * new Vector3(-.3f, 0, 0);
-        }
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            rigidbody.velocity += transform.rotation * new Vector3(.3f, 0, 0);
-        }
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            gameObject.GetComponent<Rigidbody>().velocity += new Vector3(0, 3, 0);
-        }
+        Debug.Log("Player position: " + transform.position);
     }
 }
