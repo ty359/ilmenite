@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
-
 public class ChunkSaver
 {
     const int version = 31415;
@@ -109,7 +108,7 @@ public class Chunk : MonoBehaviour
                 {
                     if (j <= (i + k) / 5 && y == 0)
                     {
-                        blocks[i, j, k] = Block.NewDirtBlock();
+                        blocks[i, j, k] = Block.CreateBlockByID(1);
                     }
                 }
     }
@@ -122,61 +121,68 @@ public class Chunk : MonoBehaviour
 
     bool renderUpToDate = false;
 
-    public void SetBlock(int x, int y, int z, Block block)
-    {
-        if (blocks == null)
-        {
-            Debug.LogError("Try to setblock before load chunk");
-        } else
-        {
-            blocks[x, y, z] = block;
-            renderUpToDate = false;
-        }
-    }
-
-    public void MeshUpdate()
+    public void RenderUpdate()
     {
         if (renderUpToDate || blocks == null)
             return;
-        MeshList meshList = new MeshList();
+        ChunkRenderHandle renderHandle = new ChunkRenderHandle(this);
 
-        for (int i = 0; i < chunkSizeX; i++)
-            for (int j = 0; j < chunkSizeY; j++)
-                for (int k = 0; k < chunkSizeZ; k++)
+        for (int i = 0; i < chunkSizeX; ++i)
+            for (int j = 0; j < chunkSizeY; ++j)
+                for (int k = 0; k < chunkSizeZ; ++k)
                     if (blocks[i, j, k] != null)
-                        for (int s = 0; s < 6; ++ s)
-                            if (!IsSolid(i - (int)directions[s].x, j - (int)directions[s].y, k - (int)directions[s].z))
-                                Block.BuildMeshFace(
-                                    meshList,
-                                    new Vector3(i + .5f, j + .5f, k + .5f),
-                                    Quaternion.FromToRotation(directions[0], directions[s]),
-                                    blocks[i, j, k].GetBlockFaceUV(s)
-                                );
+                    {
+                        blocks[i, j, k].RenderAt(renderHandle, this.GetBlockCenterPosition(i, j, k), BlockVisibleStatus.AllVisible);
+                    }
+        renderHandle.Apply();
 
-        meshList.ApplyTo(gameObject.GetComponent<MeshFilter>().mesh);
-        gameObject.GetComponent<MeshCollider>().sharedMesh = gameObject.GetComponent<MeshFilter>().mesh;
         renderUpToDate = true;
     }
 
-    bool IsSolid(int x, int y, int z)
+    Vector3 GetBlockCenterPosition(int x, int y, int z)
     {
-        if (x < 0 || y < 0 || z < 0 || x >= chunkSizeX || y >= chunkSizeY || z >= chunkSizeZ)
-            return false;
-        if (blocks[x, y, z] == null)
-            return false;
-        return blocks[x, y, z].IsSolid();
+        return new Vector3(Block.sideLength * (x + 0.5f), Block.sideLength * (y + 0.5f), Block.sideLength * (z + 0.5f));
     }
-    static Vector3[] directions = {
-        new Vector3(0, 0, 1),
-        new Vector3(0, 1, 0),
-        new Vector3(1, 0, 0),
-        new Vector3(0, 0, -1),
-        new Vector3(0, -1, 0),
-        new Vector3(-1, 0, 0),
-    };
 
     void Update()
     {
-        MeshUpdate();
+        RenderUpdate();
+    }
+}
+
+public class ChunkRenderHandle
+{
+    public class MeshList
+    {
+        public List<Vector3> vertices = new List<Vector3>();
+        public List<Vector2> uv = new List<Vector2>();
+        public List<int> triangles = new List<int>();
+        public void ApplyTo(Mesh mesh)
+        {
+            mesh.Clear();
+            mesh.vertices = vertices.ToArray();
+            mesh.uv = uv.ToArray();
+            mesh.triangles = triangles.ToArray();
+        }
+        public int VCount()
+        {
+            return vertices.Count;
+        }
+    }
+
+    public MeshList meshList;
+    public GameObject chunkObject;
+
+    public ChunkRenderHandle(Chunk chunk)
+    {
+        meshList = new MeshList();
+        chunkObject = chunk.gameObject;
+    }
+
+    public void Apply()
+    {
+        meshList.ApplyTo(chunkObject.GetComponent<MeshFilter>().mesh);
+        chunkObject.GetComponent<MeshCollider>().sharedMesh = chunkObject.GetComponent<MeshFilter>().mesh;
+//        throw new System.NotImplementedException();
     }
 }

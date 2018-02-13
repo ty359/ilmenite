@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 
+// 尚未使用 
+// 缺少文档
 
 // Ilmenite Object Notation
 public abstract class ION
@@ -125,9 +127,7 @@ public abstract class ION
                 ret = new IONTagDict();
                 break;
             default:
-                // TODO raise a exception
-                ret = null;
-                break;
+                throw new System.Exception("Loading ION file error!");
         }
         ret.ReadContent(stream);
         return ret;

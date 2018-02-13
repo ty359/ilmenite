@@ -37,6 +37,5 @@ public class Player : MonoBehaviour {
                 gameObject.GetComponent<Rigidbody>().velocity += new Vector3(0, 8, 0);
             }
         }
-        Debug.Log("Player position: " + transform.position);
     }
 }

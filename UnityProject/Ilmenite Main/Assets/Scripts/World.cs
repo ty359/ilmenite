@@ -27,7 +27,8 @@ public class World: MonoBehaviour
 
     void Start()
     {
-        chunkSaver = ChunkSaver.Open("test.save");
+        BlockProtoTypeAssigner.Assign();
+        chunkSaver = ChunkSaver.Create("test.save", worldSizeX, worldSizeY, worldSizeZ);
         chunks = new Chunk[worldSizeX, worldSizeY, worldSizeZ];
         for (int i = 0; i < worldSizeX; ++ i)
             for (int j = 0; j < worldSizeY; ++ j)
@@ -35,7 +36,7 @@ public class World: MonoBehaviour
                 {
                     chunks[i, j, k] = Instantiate(
                         chunkPrefeb,
-                        new Vector3(i * Chunk.chunkSizeX, j * Chunk.chunkSizeY, k * Chunk.chunkSizeZ),
+                        new Vector3(i * Chunk.chunkSizeX * Block.sideLength, j * Chunk.chunkSizeY * Block.sideLength, k * Chunk.chunkSizeZ * Block.sideLength),
                         Quaternion.identity,
                         gameObject.transform
                     ).GetComponent<Chunk>();

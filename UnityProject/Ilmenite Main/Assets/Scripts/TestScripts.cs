@@ -32,8 +32,9 @@ public class TestScripts : MonoBehaviour {
             }
         };
         Debug.Log(root);
-        MemoryStream memoryStream = new MemoryStream(65536);
+        MemoryStream memoryStream = new MemoryStream();
         root.Write(memoryStream);
+        Debug.Log(memoryStream.ToArray().Length);
         memoryStream.Seek(0, SeekOrigin.Begin);
         root = ION.Read(memoryStream);
         Debug.Log(root);
