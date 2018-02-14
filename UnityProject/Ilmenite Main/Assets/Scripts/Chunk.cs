@@ -97,30 +97,46 @@ public class Chunk : MonoBehaviour
     public const int chunkSizeY = 16;
     public const int chunkSizeZ = 16;
 
-    public Block[,,] blocks;
+    World parentWorld;
+    int worldX, worldY, worldZ;
+    Block[,,] blocks;
 
-    public void Load(ChunkSaver saver, int x, int y, int z)
+    public void Load(ChunkSaver chunkSaver)
     {
         blocks = new Block[chunkSizeX, chunkSizeY, chunkSizeZ];
         for (int i = 0; i < chunkSizeX; i++)
             for (int j = 0; j < chunkSizeY; j++)
                 for (int k = 0; k < chunkSizeZ; k++)
                 {
-                    if (j <= (i + k) / 5 && y == 0)
+                    if (j <= (i + k) / 5 && worldY == 0)
                     {
                         blocks[i, j, k] = Block.CreateBlockByID(1);
                     }
                 }
     }
-    public void Save(ChunkSaver saver, int x, int y, int z)
+    public void Save(ChunkSaver chunkSaver)
     {
     }
     public void Free()
     {
     }
 
-    bool renderUpToDate = false;
+    public static Chunk CreateChunkInstance(World world, int x, int y, int z)
+    {
+        Chunk chunk = Instantiate(
+            world.chunkPrefeb,
+            new Vector3(x * Chunk.chunkSizeX * Block.sideLength, y * Chunk.chunkSizeY * Block.sideLength, z * Chunk.chunkSizeZ * Block.sideLength),
+            Quaternion.identity,
+            world.transform
+        ).GetComponent<Chunk>();
+        chunk.parentWorld = world;
+        chunk.worldX = x;
+        chunk.worldY = y;
+        chunk.worldZ = z;
+        return chunk;
+    }
 
+    bool renderUpToDate = false;
     public void RenderUpdate()
     {
         if (renderUpToDate || blocks == null)
