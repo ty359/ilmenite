@@ -20,7 +20,6 @@ struct MetaBlock {
         struct {
             uint8_t level;
             int16_t delta;
-            inline int getlevel() const {return level? level : 0x100;}
         } water;
     } info;
 
@@ -87,6 +86,7 @@ struct Chunk {
     public:
         Range(): _begin({0, 0, 0}), _end({0, 0, Z_SIZE}) {}
         Range(int h): _begin({0, 0, 0}), _end({0, 0, h}) {}
+        Range(int l, int r): _begin({0, 0, l}), _end({0, 0, r}) {}
         _Iter &begin() {
             return _begin;
         }
